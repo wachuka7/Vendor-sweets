@@ -40,7 +40,7 @@ if __name__ == '__main__':
         for sweet in sweets:
             vendor = rc(vendors)
             vendor_sweets.append(
-                VendorSweet(sweet=sweet, vendor=vendor, price = randrange(50))
+                VendorSweet(sweet_id=sweet.id, vendor_id=vendor.id, price = randrange(50))
             )
         db.session.add_all(vendor_sweets)
         db.session.commit()
