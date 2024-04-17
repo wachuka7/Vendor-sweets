@@ -18,8 +18,10 @@ class Sweet(db.Model, SerializerMixin):
     name = db.Column(db.String)
 
     # Add relationship
+    vendor_sweets= db.relationship('VendorSweet', back_populates= 'sweets', cascade= 'all, delete-orphan')
     
     # Add serialization
+    serialize_rules=['-vendor_sweets.sweets']
     
     def __repr__(self):
         return f'<Sweet {self.id}>'
@@ -32,8 +34,10 @@ class Vendor(db.Model, SerializerMixin):
     name = db.Column(db.String)
 
     # Add relationship
+    vendor_sweets= db.relationship('VendorSweet', back_populates= 'vendors', cascade= 'all, delete-orphan')
     
     # Add serialization
+    serialize_rules=['-vendor_sweets.vendors']
     
     def __repr__(self):
         return f'<Vendor {self.id}>'
@@ -46,10 +50,20 @@ class VendorSweet(db.Model, SerializerMixin):
     price = db.Column(db.Integer, nullable=False)
 
     # Add relationships
-    
+    vendors= db.relationship('Vendor', back_populates='vendor_sweets')
+    sweets=db.relationship('Sweet', back_populates='vendor_sweets')
     # Add serialization
     
     # Add validation
+    @validates('price')
+    def validate_price(self, key, price):
+        if not price:
+            raise ValueError('Price cannot be none')
+        elif price<0:
+            raise ValueError('Price cannot be lower than zero')
+        else:
+            return price
+
     
     def __repr__(self):
         return f'<VendorSweet {self.id}>'
