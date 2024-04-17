@@ -22,19 +22,13 @@ db.init_app(app)
 
 class Home(Resource):
 
-    def get(self):        
-        response_dict = {
-            "message": "Code challenge",
-        }       
-        response = make_response(
-            response_dict,
-            200,
-        )
-        return response
-
+    def get(self):   
+        return jsonify({"message": "Code Challenge"}), 200     
+       
 class Vendors(Resource):
     def get(self):
         vendors=[{"id": vendor.id, "name": vendor.name} for vendor in Vendor.query.all()]
+        
         response = make_response(
             vendors,
             200,
@@ -44,7 +38,9 @@ class Vendors(Resource):
 class VendorById(Resource):
     def get(self, id):
         vendor = Vendor.query.filter_by(id=id).first()
-        if vendor:        
+        if not vendor: 
+            return jsonify({'error': 'Vendor not found'}),404   
+        else:    
             vendor_data = {
                 'id': vendor.id,
                 'name': vendor.name,
@@ -60,9 +56,7 @@ class VendorById(Resource):
                 ]
             }
             return jsonify(vendor_data)
-        else:
-            return jsonify({'error': 'Vendor not found'}),404
-
+     
 class Sweets(Resource):
 
     def get(self):
@@ -84,17 +78,16 @@ class VendorSweets(Resource):
     def post(self):
         vendor_sweet_data=request.get_json()
         price= vendor_sweet_data.get("price")
-        vendor_id=vendor_sweet_data.get("vendor_id")
-        sweet_id=vendor_sweet_data.get("sweet_id")
-
-        
+        vendor_id=vendor_sweet.get("vendor_id")
+        sweet_id=vendor_sweet.get("sweet_id")
+     
 
         if not all([price, vendor_id, sweet_id]):
             return jsonify({"error": "validation error"}), 400
         
         try:
-            vendor=Vendor.query.filter_by(id=vendor_id).one()
-            sweet= Sweet.query.filter_by(id=sweet_id).one()
+            vendor=Vendor.query.filter_by(id=vendor_id).first()
+            sweet= Sweet.query.filter_by(id=sweet_id).first()
         except NoResultFound:
             return jsonify({"errors": "Vendor or sweet not found"}), 404
         
@@ -106,7 +99,7 @@ class VendorSweets(Resource):
             "id": vendor_sweet.id,
             "price": vendor_sweet.price,
             "sweet": {"id": sweet.id, "name": sweet.name},
-            "sweet_id": sweet.id,
+            "sweet_id": sweet. id,
             "vendor": {"id": vendor.id, "name": vendor.name},
             "vendor_id": vendor.id
         }
@@ -120,7 +113,7 @@ class VendorSweetsResource(Resource):
             db.session.commit()
             return {}, 204
         else:
-            return jsonify({"error": "VendorSweet not found"}), 204    
+            return jsonify({"error": "VendorSweet not found"}), 404    
 
 api.add_resource(Home, '/')
 api.add_resource(Vendors, '/vendors')
