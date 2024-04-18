@@ -1,63 +1,57 @@
 #!/usr/bin/env python3
+import os
 from models import db, Sweet, Vendor, VendorSweet
+
 from flask_migrate import Migrate
 from flask import Flask, request, make_response, jsonify
-from flask_restful import Api, Resource, abort
+from flask_restful import Api, Resource
 from sqlalchemy.orm.exc import NoResultFound
-import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATABASE = os.environ.get(
     "DB_URI", f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}")
 
 app = Flask(__name__)
-api= Api(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-migrate = Migrate(app, db)
-
 db.init_app(app)
+migrate = Migrate(app, db)
+api= Api(app)
 
-class Home(Resource):
+@app.route('/')
+def home(): 
+    return '<h1>Code Challenge</h1>'
 
-    def get(self):   
-        return jsonify({"message": "Code Challenge"}), 200     
-       
-class Vendors(Resource):
+class VendorsResource(Resource):
     def get(self):
-        vendors=[{"id": vendor.id, "name": vendor.name} for vendor in Vendor.query.all()]
-        
-        response = make_response(
-            vendors,
-            200,
-        )
-        return response
+        vendors = Vendor.query.all()
+        vendors_data = [{'id': vendor.id, 'name': vendor.name} for vendor in vendors]
+        return jsonify(vendors_data)
 
-class VendorById(Resource):
-    def get(self, id):
-        vendor = Vendor.query.filter_by(id=id).first()
-        if not vendor: 
-            return jsonify({'error': 'Vendor not found'}),404   
-        else:    
+class VendorResource(Resource):
+    def get(self, vendor_id):
+        try:
+            vendor = Vendor.query.filter_by(id=vendor_id).one()
             vendor_data = {
                 'id': vendor.id,
                 'name': vendor.name,
                 'vendor_sweets': [
                     {
-                        'id': vs.id,
-                        'price': vs.price,
-                        'sweet': {'id': vs.sweet.id, 
-                                  'name': vs.sweet.name},
-                        'sweet_id': vs.sweet.id,
-                        'vendor_id': vs.vendor.id
-                    } for vs in vendor.vendor_sweets
-                ]
+                        'id': vendor_sweet.id,
+                        'price': vendor_sweet.price,
+                        'sweet': {'id': vendor_sweet.sweet.id, 'name': vendor_sweet.sweet.name},
+                        'sweet_id': vendor_sweet.sweet_id,
+                        'vendor_id': vendor_sweet.vendor_id
+                    } for vendor_sweet in vendor.vendor_sweets]
             }
             return jsonify(vendor_data)
+        except NoResultFound:
+            response = {'error': 'Vendor not found'}
+            return make_response(jsonify(response), 404)
      
-class Sweets(Resource):
+class SweetsResource(Resource):
 
     def get(self):
         sweets = Sweet.query.all()
@@ -66,48 +60,62 @@ class Sweets(Resource):
             "name": sweet.name} for sweet in sweets]
         return jsonify(sweets_data)
 
-class SweetsById(Resource):
-    def get(self, id):
-        sweet = Sweet.query.filter_by(id=id).first()
-        if sweet:            
-            return jsonify({"id": sweet.id, "name": sweet.name})
-        else:
-            jsonify({"error": "Sweet not found"}), 404
-
-class VendorSweets(Resource):
-    def post(self):
-        vendor_sweet_data=request.get_json()
-        price= vendor_sweet_data.get("price")
-        vendor_id=vendor_sweet.get("vendor_id")
-        sweet_id=vendor_sweet.get("sweet_id")
-     
-
-        if not all([price, vendor_id, sweet_id]):
-            return jsonify({"error": "validation error"}), 400
-        
+class SweetResource(Resource):
+    def get(self, sweet_id):
         try:
-            vendor=Vendor.query.filter_by(id=vendor_id).first()
-            sweet= Sweet.query.filter_by(id=sweet_id).first()
+            sweet = Sweet.query.filter_by(id=sweet_id).one()
+            sweet_data = {'id': sweet.id, 'name': sweet.name}
+            return jsonify(sweet_data)
         except NoResultFound:
-            return jsonify({"errors": "Vendor or sweet not found"}), 404
-        
-        vendor_sweet=VendorSweet(price=price, vendor=vendor, sweet=sweet)
-        db.session.add(vendor_sweet)
-        db.session.commit()
+            response = {'error': 'Sweet not found'}
+            return make_response(jsonify(response), 404)
 
-        response_data = {
-            "id": vendor_sweet.id,
-            "price": vendor_sweet.price,
-            "sweet": {"id": sweet.id, "name": sweet.name},
-            "sweet_id": sweet. id,
-            "vendor": {"id": vendor.id, "name": vendor.name},
-            "vendor_id": vendor.id
-        }
-        return jsonify(response_data), 201
-    
-class VendorSweetsResource(Resource):
-    def delete(self, id):
-        vendor_sweet=VendorSweet.query.filter_by(id=id).first()
+class VendorSweetResource(Resource):
+    def post(self):
+        vendor_sweet_data = request.get_json()
+        price = vendor_sweet_data.get("price")
+        vendor_id = vendor_sweet_data.get("vendor_id")
+        sweet_id = vendor_sweet_data.get("sweet_id")
+
+        errors = []
+
+        if None in (price, vendor_id, sweet_id):
+            errors.append('price, vendor_id, and sweet_id are required')
+
+        # Validating price to ensure it's non-negative
+        if price is not None and price < 0:
+            errors.append('Price must be non-negative.')
+
+        if errors:
+            response = jsonify({'errors': errors})
+            return make_response(response, 400)
+
+        try:
+            vendor = Vendor.query.filter_by(id=vendor_id).one()
+            sweet = Sweet.query.filter_by(id=sweet_id).one()
+
+            new_vendor_sweet = VendorSweet(price=price, vendor=vendor, sweet=sweet)
+            db.session.add(new_vendor_sweet)
+            db.session.commit()
+
+            vendor_sweet_data = {
+                'id': new_vendor_sweet.id,
+                'price': new_vendor_sweet.price,
+                'sweet': {'id': sweet.id, 'name': sweet.name},
+                'sweet_id': sweet.id,
+                'vendor': {'id': vendor.id, 'name': vendor.name},
+                'vendor_id': vendor.id
+            }
+
+            response = jsonify(vendor_sweet_data)
+            return make_response(response, 201)
+        except NoResultFound:
+            response = {'error': 'Vendor or Sweet not found'}
+            return make_response(jsonify(response), 404)
+
+class VendorSweetDeleteResource(Resource):
+    def delete(self, vendor_sweet_id):
+        vendor_sweet = VendorSweet.query.get(vendor_sweet_id)
         if vendor_sweet:
             db.session.delete(vendor_sweet)
             db.session.commit()
@@ -115,13 +123,15 @@ class VendorSweetsResource(Resource):
         else:
             return jsonify({"error": "VendorSweet not found"}), 404    
 
-api.add_resource(Home, '/')
-api.add_resource(Vendors, '/vendors')
-api.add_resource(VendorById, '/vendors/<int:id>')
-api.add_resource(Sweets, '/sweets')
-api.add_resource(SweetsById, '/sweets/<int:id>')
-api.add_resource(VendorSweets, '/vendor_sweets')
-api.add_resource(VendorSweetsResource, '/vendor_sweets/<int:id>')
+
+api.add_resource(VendorsResource, '/vendors')
+api.add_resource(VendorResource, '/vendors/<int:vendor_id>')
+api.add_resource(SweetsResource, '/sweets')
+api.add_resource(SweetResource, '/sweets/<int:sweet_id>')
+api.add_resource(VendorSweetResource, '/vendor_sweets')
+api.add_resource(VendorSweetDeleteResource, '/vendor_sweets/<int:vendor_sweet_id>')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
+
+
