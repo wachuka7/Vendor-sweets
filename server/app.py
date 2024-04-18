@@ -84,7 +84,7 @@ class VendorSweetResource(Resource):
 
         # Validating price to ensure it's non-negative
         if price is not None and price < 0:
-            errors.append('Price must be non-negative.')
+            errors.append('validation errors')
 
         if errors:
             response = jsonify({'errors': errors})
@@ -94,7 +94,7 @@ class VendorSweetResource(Resource):
             vendor = Vendor.query.filter_by(id=vendor_id).one()
             sweet = Sweet.query.filter_by(id=sweet_id).one()
 
-            new_vendor_sweet = VendorSweet(price=price, vendor=vendor, sweet=sweet)
+            new_vendor_sweet = VendorSweet(price=price, vendor_id=vendor.id, sweet_id=sweet.id)
             db.session.add(new_vendor_sweet)
             db.session.commit()
 
@@ -113,15 +113,15 @@ class VendorSweetResource(Resource):
             response = {'error': 'Vendor or Sweet not found'}
             return make_response(jsonify(response), 404)
 
-class VendorSweetDeleteResource(Resource):
+class DeleteVendorSweetResource(Resource):
     def delete(self, vendor_sweet_id):
         vendor_sweet = VendorSweet.query.get(vendor_sweet_id)
-        if vendor_sweet:
+        if vendor_sweet:  # Check if vendor_sweet is found
             db.session.delete(vendor_sweet)
             db.session.commit()
             return {}, 204
         else:
-            return jsonify({"error": "VendorSweet not found"}), 404    
+            return {"error": "VendorSweet not found"}, 404
 
 
 api.add_resource(VendorsResource, '/vendors')
@@ -129,7 +129,7 @@ api.add_resource(VendorResource, '/vendors/<int:vendor_id>')
 api.add_resource(SweetsResource, '/sweets')
 api.add_resource(SweetResource, '/sweets/<int:sweet_id>')
 api.add_resource(VendorSweetResource, '/vendor_sweets')
-api.add_resource(VendorSweetDeleteResource, '/vendor_sweets/<int:vendor_sweet_id>')
+api.add_resource(DeleteVendorSweetResource, '/vendor_sweets/<int:vendor_sweet_id>')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
