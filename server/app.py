@@ -7,11 +7,11 @@ from flask import Flask, request, make_response, jsonify
 from flask_restful import Api, Resource
 from sqlalchemy.orm.exc import NoResultFound
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE = os.environ['postgresql://deployment_qcv4_user:JXPLm3vUkdGKjyIfiJzCVszrDXR5Siak@dpg-cof99jq1hbls7399aung-a.oregon-postgres.render.com/vendor_sweet_db']
+# BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# DATABASE = os.environ['postgresql://deployment_qcv4_user:JXPLm3vUkdGKjyIfiJzCVszrDXR5Siak@dpg-cof99jq1hbls7399aung-a.oregon-postgres.render.com/vendor_sweet_db']
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://deployment_qcv4_user:JXPLm3vUkdGKjyIfiJzCVszrDXR5Siak@dpg-cof99jq1hbls7399aung-a.oregon-postgres.render.com/vendor_sweet_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
