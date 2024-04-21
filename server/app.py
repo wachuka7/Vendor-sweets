@@ -129,7 +129,7 @@ api.add_resource(SweetResource, '/sweets/<int:sweet_id>')
 api.add_resource(VendorSweetResource, '/vendor_sweets')
 api.add_resource(DeleteVendorSweetResource, '/vendor_sweets/<int:vendor_sweet_id>')
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+# if __name__ == '__main__':
+#     app.run(port=5555, debug=True)
 
 
