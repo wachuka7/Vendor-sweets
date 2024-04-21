@@ -8,11 +8,11 @@ from flask_restful import Api, Resource
 from sqlalchemy.orm.exc import NoResultFound
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-# DATABASE = os.environ.get(
-#     "DB_URI", f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}")
+DATABASE = os.environ.get(
+    "DB_URI", f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://deployment_qcv4_user:JXPLm3vUkdGKjyIfiJzCVszrDXR5Siak@dpg-cof99jq1hbls7399aung-a.oregon-postgres.render.com/deployment_qcv4'
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
@@ -133,5 +133,3 @@ api.add_resource(DeleteVendorSweetResource, '/vendor_sweets/<int:vendor_sweet_id
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
-
-
