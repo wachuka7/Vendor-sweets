@@ -33,7 +33,7 @@ class VendorsResource(Resource):
         vendors_data = [{'id': vendor.id, 'name': vendor.name} for vendor in vendors]
         return jsonify(vendors_data)
 
-class VendorResource(Resource):
+class VendorResourceById(Resource):
     def get(self, vendor_id):
         try:
             vendor = Vendor.query.filter_by(id=vendor_id).one()
@@ -63,7 +63,7 @@ class SweetsResource(Resource):
             "name": sweet.name} for sweet in sweets]
         return jsonify(sweets_data)
 
-class SweetResource(Resource):
+class SweetResourceById(Resource):
     def get(self, sweet_id):
         try:
             sweet = Sweet.query.filter_by(id=sweet_id).one()
@@ -128,9 +128,9 @@ class DeleteVendorSweetResource(Resource):
 
 
 api.add_resource(VendorsResource, '/vendors')
-api.add_resource(VendorResource, '/vendors/<int:vendor_id>')
+api.add_resource(VendorResourceById, '/vendors/<int:vendor_id>')
 api.add_resource(SweetsResource, '/sweets')
-api.add_resource(SweetResource, '/sweets/<int:sweet_id>')
+api.add_resource(SweetResourceById, '/sweets/<int:sweet_id>')
 api.add_resource(VendorSweetResource, '/vendor_sweets')
 api.add_resource(DeleteVendorSweetResource, '/vendor_sweets/<int:vendor_sweet_id>')
 
