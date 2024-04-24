@@ -3,6 +3,9 @@
 ## Introduction
 This is a Sweet-Vendor project that implements a RESTful API for managing vendors, sweets, and their relationships. It provides endpoints for CRUD operations on vendors, sweets, and vendor sweets. This `README.md` gives the API documentation, outlines the available endpoints, their functionalities, and expected responses.
 
+## Deployment
+This API has been deployed and you can access it at [https://phase4-codechallenge-2.onrender.com/](https://phase4-codechallenge-2.onrender.com/).
+
 ## Setup
 To set up the project:
 
@@ -17,14 +20,16 @@ git clone git@github.com:wachuka7/phase4-codechallenge-2.git
 6. Run database migrations using `flask db upgrade head`.
 7. Seed the database with initial data by running `python server/seed.py`.
 8. Start the Flask development server with `python app.py`.
-9. The API will be accessible at `http://localhost:5555/`.
+9. The API will be accessible at `http://localhost:5000/`.
 
 ## Models
-The API implements the following data model:
+The API implements the following data models:
 
 - Sweet: Represents a type of sweet.
 - Vendor: Represents a vendor selling sweets.
 - VendorSweet: Represents the relationship between vendors and sweets, including the price.
+
+which are in sweet.py, vendor.py and vendor_sweet.py respectively.
 
 ## Validations
 The API enforces the following validations:
